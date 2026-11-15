@@ -1,0 +1,110 @@
+# Local development stack for busmora-ai. DEV ONLY: well-known credentials, every
+# port bound to 127.0.0.1. The roles themselves run on the host with `uv run`.
+#
+#   docker compose -f deploy/docker-compose.dev.yml up -d --wait
+#   docker compose -f deploy/docker-compose.dev.yml down        # keep data
+#   docker compose -f deploy/docker-compose.dev.yml down -v     # wipe data
+#
+# Values match .env.example.
+
+name: busmora-ai-dev
+
+services:
+  postgres:
+    image: postgres:17.12-alpine
+    environment:
+      POSTGRES_USER: busmora
+      POSTGRES_PASSWORD: busmora_dev
+      POSTGRES_DB: busmora
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Runs once, on first start with an empty volume. Stand-in for busmora-api
+      # migrations until they exist (docs/adr/0007). Re-run with `down -v`.
+      - ./dev-init.sql:/docker-entrypoint-initdb.d/10-busmora-ai-dev-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U busmora -d busmora"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  qdrant:
+    image: qdrant/qdrant:v1.20.1
+    ports:
+      - "127.0.0.1:6333:6333"   # HTTP
+      - "127.0.0.1:6334:6334"   # gRPC
+    volumes:
+      - qdrant-data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4.12-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  temporal:
+    # Temporal CLI dev server (in-memory). Web UI: http://127.0.0.1:8233
+    image: temporalio/temporal:1.10.1
+    command: ["server", "start-dev", "--ip", "0.0.0.0"]
+    ports:
+      - "127.0.0.1:7233:7233"
+      - "127.0.0.1:8233:8233"
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "127.0.0.1:7233"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  object-storage:
+    # S3-compatible store. RustFS replaces MinIO, whose community images were
+    # discontinued. Console: http://127.0.0.1:9001
+    image: rustfs/rustfs:1.0.5
+    environment:
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ACCESS_KEY: busmora_dev
+      RUSTFS_SECRET_KEY: busmora_dev_secret
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - object-storage-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  object-storage-init:
+    # One-shot: create the dev bucket if it does not exist yet.
+    image: amazon/aws-cli:2.40.3
+    depends_on:
+      object-storage:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: busmora_dev
+      AWS_SECRET_ACCESS_KEY: busmora_dev_secret
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        aws --endpoint-url http://object-storage:9000 s3api head-bucket --bucket busmora-dev
+        || aws --endpoint-url http://object-storage:9000 s3api create-bucket --bucket busmora-dev
+    restart: "no"
+
+volumes:
+  postgres-data:
+  qdrant-data:
+  object-storage-data:

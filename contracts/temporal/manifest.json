@@ -1,0 +1,63 @@
+{
+  "activities": [
+    {
+      "input_schema": "ai.ping.input.json",
+      "name": "ai.ping",
+      "output_schema": "ai.ping.output.json",
+      "recommended": {
+        "heartbeat_timeout_seconds": null,
+        "maximum_attempts": 3,
+        "start_to_close_timeout_seconds": 10
+      },
+      "status": "available",
+      "task_queue": "ai-agent"
+    },
+    {
+      "input_schema": "crawl.ping.input.json",
+      "name": "crawl.ping",
+      "output_schema": "crawl.ping.output.json",
+      "recommended": {
+        "heartbeat_timeout_seconds": null,
+        "maximum_attempts": 3,
+        "start_to_close_timeout_seconds": 10
+      },
+      "status": "available",
+      "task_queue": "ai-crawl"
+    },
+    {
+      "input_schema": "ai.run_agent_step.input.json",
+      "name": "ai.run_agent_step",
+      "output_schema": "ai.run_agent_step.output.json",
+      "recommended": {
+        "heartbeat_timeout_seconds": 30,
+        "maximum_attempts": 3,
+        "start_to_close_timeout_seconds": 600
+      },
+      "status": "planned",
+      "task_queue": "ai-agent"
+    },
+    {
+      "input_schema": "crawl.crawl_sources.input.json",
+      "name": "crawl.crawl_sources",
+      "output_schema": "crawl.crawl_sources.output.json",
+      "recommended": {
+        "heartbeat_timeout_seconds": 30,
+        "maximum_attempts": 3,
+        "start_to_close_timeout_seconds": 300
+      },
+      "status": "planned",
+      "task_queue": "ai-crawl"
+    }
+  ],
+  "contracts_version": "0.1.0",
+  "non_retryable_error_types": [
+    "ai.invalid_input",
+    "ai.configuration_error",
+    "ai.budget_exhausted",
+    "ai.policy_violation"
+  ],
+  "task_queues": [
+    "ai-agent",
+    "ai-crawl"
+  ]
+}

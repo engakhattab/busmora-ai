@@ -1,0 +1,89 @@
+{
+  "$defs": {
+    "CrawlSourcesRequest": {
+      "description": "What the agent wants crawled. Produced by ``ai.run_agent_step`` (``needs_crawl``).",
+      "properties": {
+        "max_pages_per_target": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Pages Per Target",
+          "type": "integer"
+        },
+        "purpose": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/CrawlTarget"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "purpose",
+        "targets"
+      ],
+      "title": "CrawlSourcesRequest",
+      "type": "object"
+    },
+    "CrawlTarget": {
+      "properties": {
+        "url": {
+          "format": "uri",
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "title": "CrawlTarget",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "request": {
+      "$ref": "#/$defs/CrawlSourcesRequest"
+    },
+    "task_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Id"
+    },
+    "trace_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "workspace_id": {
+      "format": "uuid",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "workspace_id",
+    "trace_id",
+    "request"
+  ],
+  "title": "CrawlSourcesInput",
+  "type": "object"
+}

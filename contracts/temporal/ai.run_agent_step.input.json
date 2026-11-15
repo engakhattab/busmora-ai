@@ -1,0 +1,228 @@
+{
+  "$defs": {
+    "ClarificationAnswer": {
+      "properties": {
+        "custom_answer": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Custom Answer"
+        },
+        "question_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Question Id",
+          "type": "string"
+        },
+        "selected_option_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Selected Option Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "question_id"
+      ],
+      "title": "ClarificationAnswer",
+      "type": "object"
+    },
+    "ClarificationAnsweredResume": {
+      "properties": {
+        "answers": {
+          "items": {
+            "$ref": "#/$defs/ClarificationAnswer"
+          },
+          "minItems": 1,
+          "title": "Answers",
+          "type": "array"
+        },
+        "kind": {
+          "const": "clarification_answered",
+          "default": "clarification_answered",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "answers"
+      ],
+      "title": "ClarificationAnsweredResume",
+      "type": "object"
+    },
+    "CrawlFailure": {
+      "properties": {
+        "reason": {
+          "enum": [
+            "unreachable",
+            "blocked_by_robots",
+            "rate_limited",
+            "captcha",
+            "timeout",
+            "unsupported_content",
+            "rejected_by_policy"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "reason"
+      ],
+      "title": "CrawlFailure",
+      "type": "object"
+    },
+    "CrawlResultsResume": {
+      "properties": {
+        "crawl": {
+          "$ref": "#/$defs/CrawlSourcesOutput"
+        },
+        "kind": {
+          "const": "crawl_results",
+          "default": "crawl_results",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "crawl"
+      ],
+      "title": "CrawlResultsResume",
+      "type": "object"
+    },
+    "CrawlSourcesOutput": {
+      "properties": {
+        "failures": {
+          "items": {
+            "$ref": "#/$defs/CrawlFailure"
+          },
+          "title": "Failures",
+          "type": "array"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/SnapshotRef"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "failures"
+      ],
+      "title": "CrawlSourcesOutput",
+      "type": "object"
+    },
+    "SnapshotRef": {
+      "description": "A sanitized page snapshot stored in object storage. Content travels by reference.",
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "storage_key": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Storage Key",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "storage_key",
+        "content_sha256",
+        "fetched_at"
+      ],
+      "title": "SnapshotRef",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "resume": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "clarification_answered": "#/$defs/ClarificationAnsweredResume",
+              "crawl_results": "#/$defs/CrawlResultsResume"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CrawlResultsResume"
+            },
+            {
+              "$ref": "#/$defs/ClarificationAnsweredResume"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Resume"
+    },
+    "step_number": {
+      "minimum": 1,
+      "title": "Step Number",
+      "type": "integer"
+    },
+    "task_id": {
+      "format": "uuid",
+      "title": "Task Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "workspace_id": {
+      "format": "uuid",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "workspace_id",
+    "task_id",
+    "trace_id",
+    "step_number"
+  ],
+  "title": "RunAgentStepInput",
+  "type": "object"
+}

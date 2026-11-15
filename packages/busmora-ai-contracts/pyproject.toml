@@ -1,0 +1,12 @@
+[project]
+name = "busmora-ai-contracts"
+version = "0.1.0"
+description = "Canonical Pydantic contracts for the Temporal activities and payloads that busmora-ai serves."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+license = { text = "Proprietary" }
+dependencies = ["pydantic>=2.14.3"]
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14"]
+build-backend = "uv_build"
