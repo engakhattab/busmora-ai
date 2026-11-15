@@ -1,0 +1,100 @@
+[project]
+name = "busmora-ai"
+version = "0.1.0"
+description = "Busmora AI services: ai-http, ai-agent and ai-crawl."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+license = { text = "Proprietary" }
+dependencies = [
+    "busmora-ai-contracts",
+    "boto3>=1.44.3",
+    "fastapi>=0.163.1",
+    # 1.82.7 and 1.82.8 were compromised on PyPI (March 2026); never allow them. See docs/adr/0005.
+    "litellm>=1.83.0,<2",
+    "psycopg[binary]>=3.3.9",
+    "pydantic>=2.14.3",
+    "pydantic-settings>=2.16.3",
+    "qdrant-client>=1.20.0",
+    "redis>=8.1.0",
+    "structlog>=26.1.0",
+    "temporalio>=1.36.1",
+    "uvicorn>=0.54.0",
+]
+
+[project.optional-dependencies]
+# Browser-based crawling for the ai-crawl role only. See docs/adr/0006.
+crawl = ["scrapling[fetchers]>=0.5.1"]
+
+[project.scripts]
+busmora-ai-http = "busmora_ai.main_http:main"
+busmora-ai-agent = "busmora_ai.main_agent:main"
+busmora-ai-crawl = "busmora_ai.main_crawl:main"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pyright[nodejs]>=1.1.414",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "ruff>=0.17.5",
+    "types-boto3[s3]>=1.44.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv]
+required-version = ">=0.13.8"
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+busmora-ai-contracts = { workspace = true }
+
+# ---------------------------------------------------------------- ruff
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "packages/busmora-ai-contracts/src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "B", "UP", "SIM", "RUF", "S", "ASYNC",
+    "PT", "N", "C4", "DTZ", "T20", "PIE", "RET", "TID", "BLE",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+"packages/*/tests/**" = ["S101"]
+"scripts/**" = ["T20"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["busmora_ai", "busmora_ai_contracts", "tests"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+# ---------------------------------------------------------------- pyright
+[tool.pyright]
+include = ["src", "packages/busmora-ai-contracts/src", "packages/busmora-ai-contracts/tests", "tests", "scripts"]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+testpaths = ["tests", "packages/busmora-ai-contracts/tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = ["--strict-markers", "--import-mode=importlib", "-m", "not integration"]
+filterwarnings = [
+    # Raised by pydantic while building litellm's own TypedDicts; not actionable here.
+    "ignore:.*using the `ReadOnly` qualifier:UserWarning",
+]
+markers = [
+    "integration: needs the local stack from deploy/docker-compose.dev.yml (run with -m integration)",
+]

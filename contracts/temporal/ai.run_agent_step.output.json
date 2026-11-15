@@ -1,0 +1,367 @@
+{
+  "$defs": {
+    "ClarificationForm": {
+      "description": "Choice-first clarification (FR-18), rendered by the web app.",
+      "properties": {
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/ClarificationQuestion"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "questions"
+      ],
+      "title": "ClarificationForm",
+      "type": "object"
+    },
+    "ClarificationOption": {
+      "properties": {
+        "label": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "option_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Option Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "option_id",
+        "label"
+      ],
+      "title": "ClarificationOption",
+      "type": "object"
+    },
+    "ClarificationQuestion": {
+      "properties": {
+        "allow_custom_answer": {
+          "default": true,
+          "title": "Allow Custom Answer",
+          "type": "boolean"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ClarificationOption"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Options",
+          "type": "array"
+        },
+        "prompt": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Prompt",
+          "type": "string"
+        },
+        "question_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Question Id",
+          "type": "string"
+        },
+        "selection": {
+          "enum": [
+            "single",
+            "multiple"
+          ],
+          "title": "Selection",
+          "type": "string"
+        }
+      },
+      "required": [
+        "question_id",
+        "prompt",
+        "selection",
+        "options"
+      ],
+      "title": "ClarificationQuestion",
+      "type": "object"
+    },
+    "CrawlSourcesRequest": {
+      "description": "What the agent wants crawled. Produced by ``ai.run_agent_step`` (``needs_crawl``).",
+      "properties": {
+        "max_pages_per_target": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Pages Per Target",
+          "type": "integer"
+        },
+        "purpose": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/CrawlTarget"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "purpose",
+        "targets"
+      ],
+      "title": "CrawlSourcesRequest",
+      "type": "object"
+    },
+    "CrawlTarget": {
+      "properties": {
+        "url": {
+          "format": "uri",
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "title": "CrawlTarget",
+      "type": "object"
+    },
+    "LlmUsage": {
+      "properties": {
+        "cost_micro_usd": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cost Micro Usd"
+        },
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "model": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "model",
+        "input_tokens",
+        "output_tokens"
+      ],
+      "title": "LlmUsage",
+      "type": "object"
+    },
+    "ResultRef": {
+      "description": "The typed Task result, stored in object storage. Its schema is defined by the\nfeature that first produces results (T25/T29) and added here additively.",
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "media_type": {
+          "const": "application/json",
+          "default": "application/json",
+          "title": "Media Type",
+          "type": "string"
+        },
+        "storage_key": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Storage Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "storage_key",
+        "content_sha256"
+      ],
+      "title": "ResultRef",
+      "type": "object"
+    },
+    "StepCompleted": {
+      "properties": {
+        "outcome": {
+          "const": "completed",
+          "default": "completed",
+          "title": "Outcome",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/ResultRef"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "partially_completed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "step_number": {
+          "title": "Step Number",
+          "type": "integer"
+        },
+        "usage": {
+          "$ref": "#/$defs/StepUsage",
+          "default": {
+            "llm_calls": []
+          }
+        }
+      },
+      "required": [
+        "step_number",
+        "status",
+        "result"
+      ],
+      "title": "StepCompleted",
+      "type": "object"
+    },
+    "StepContinue": {
+      "properties": {
+        "outcome": {
+          "const": "continue",
+          "default": "continue",
+          "title": "Outcome",
+          "type": "string"
+        },
+        "step_number": {
+          "title": "Step Number",
+          "type": "integer"
+        },
+        "usage": {
+          "$ref": "#/$defs/StepUsage",
+          "default": {
+            "llm_calls": []
+          }
+        }
+      },
+      "required": [
+        "step_number"
+      ],
+      "title": "StepContinue",
+      "type": "object"
+    },
+    "StepNeedsClarification": {
+      "properties": {
+        "form": {
+          "$ref": "#/$defs/ClarificationForm"
+        },
+        "outcome": {
+          "const": "needs_clarification",
+          "default": "needs_clarification",
+          "title": "Outcome",
+          "type": "string"
+        },
+        "step_number": {
+          "title": "Step Number",
+          "type": "integer"
+        },
+        "usage": {
+          "$ref": "#/$defs/StepUsage",
+          "default": {
+            "llm_calls": []
+          }
+        }
+      },
+      "required": [
+        "step_number",
+        "form"
+      ],
+      "title": "StepNeedsClarification",
+      "type": "object"
+    },
+    "StepNeedsCrawl": {
+      "properties": {
+        "outcome": {
+          "const": "needs_crawl",
+          "default": "needs_crawl",
+          "title": "Outcome",
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/CrawlSourcesRequest"
+        },
+        "step_number": {
+          "title": "Step Number",
+          "type": "integer"
+        },
+        "usage": {
+          "$ref": "#/$defs/StepUsage",
+          "default": {
+            "llm_calls": []
+          }
+        }
+      },
+      "required": [
+        "step_number",
+        "request"
+      ],
+      "title": "StepNeedsCrawl",
+      "type": "object"
+    },
+    "StepUsage": {
+      "description": "Usage consumed during this step, for platform.record_progress (NFR-06, FR-27).",
+      "properties": {
+        "llm_calls": {
+          "items": {
+            "$ref": "#/$defs/LlmUsage"
+          },
+          "title": "Llm Calls",
+          "type": "array"
+        }
+      },
+      "title": "StepUsage",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "discriminator": {
+    "mapping": {
+      "completed": "#/$defs/StepCompleted",
+      "continue": "#/$defs/StepContinue",
+      "needs_clarification": "#/$defs/StepNeedsClarification",
+      "needs_crawl": "#/$defs/StepNeedsCrawl"
+    },
+    "propertyName": "outcome"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/StepContinue"
+    },
+    {
+      "$ref": "#/$defs/StepNeedsCrawl"
+    },
+    {
+      "$ref": "#/$defs/StepNeedsClarification"
+    },
+    {
+      "$ref": "#/$defs/StepCompleted"
+    }
+  ],
+  "title": "ai.run_agent_step output"
+}

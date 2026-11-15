@@ -1,0 +1,91 @@
+{
+  "$defs": {
+    "CrawlFailure": {
+      "properties": {
+        "reason": {
+          "enum": [
+            "unreachable",
+            "blocked_by_robots",
+            "rate_limited",
+            "captcha",
+            "timeout",
+            "unsupported_content",
+            "rejected_by_policy"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "reason"
+      ],
+      "title": "CrawlFailure",
+      "type": "object"
+    },
+    "SnapshotRef": {
+      "description": "A sanitized page snapshot stored in object storage. Content travels by reference.",
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "storage_key": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Storage Key",
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "storage_key",
+        "content_sha256",
+        "fetched_at"
+      ],
+      "title": "SnapshotRef",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "failures": {
+      "items": {
+        "$ref": "#/$defs/CrawlFailure"
+      },
+      "title": "Failures",
+      "type": "array"
+    },
+    "snapshots": {
+      "items": {
+        "$ref": "#/$defs/SnapshotRef"
+      },
+      "title": "Snapshots",
+      "type": "array"
+    }
+  },
+  "required": [
+    "snapshots",
+    "failures"
+  ],
+  "title": "CrawlSourcesOutput",
+  "type": "object"
+}
